@@ -19,7 +19,7 @@ function! Send_keys_to_Tmux(keys)
 endfunction
 
 " Main function.
-" Use it in your script if you want to send text to a tmux session.
+" Use it in your script if you want to send text to a tmux pane.
 function! Send_to_Tmux(text)
   if !exists("g:tslime")
     call <SID>Tmux_Vars()
@@ -31,7 +31,7 @@ function! Send_to_Tmux(text)
 endfunction
 
 function! s:tmux_target()
-  return '"' . g:tslime['session'] . '":' . g:tslime['window'] . "." . g:tslime['pane']
+  return g:tslime['pane']
 endfunction
 
 function! s:set_tmux_buffer(text)
@@ -43,59 +43,18 @@ function! SendToTmux(text)
   call Send_to_Tmux(a:text)
 endfunction
 
-" Session completion
-function! Tmux_Session_Names(A,L,P)
-  return <SID>TmuxSessions()
-endfunction
-
-" Window completion
-function! Tmux_Window_Names(A,L,P)
-  return <SID>TmuxWindows()
-endfunction
-
 " Pane completion
 function! Tmux_Pane_Numbers(A,L,P)
   return <SID>TmuxPanes()
 endfunction
 
-function! s:TmuxSessions()
-  let sessions = system("tmux list-sessions | sed -e 's/:.*$//'")
-  return sessions
-endfunction
-
-function! s:TmuxWindows()
-  return system('tmux list-windows -t "' . g:tslime['session'] . '" | grep -e "^\w:" | sed -e "s/\s*([0-9].*//g"')
-endfunction
-
 function! s:TmuxPanes()
-  return system('tmux list-panes -t "' . g:tslime['session'] . '":' . g:tslime['window'] . " | sed -e 's/:.*$//'")
+  return system("tmux list-panes -t | sed -e 's/:.*$//'")
 endfunction
 
 " set tslime.vim variables
 function! s:Tmux_Vars()
-  let names = split(s:TmuxSessions(), "\n")
   let g:tslime = {}
-  if len(names) == 1
-    let g:tslime['session'] = names[0]
-  else
-    let g:tslime['session'] = ''
-  endif
-  while g:tslime['session'] == ''
-    let g:tslime['session'] = input("session name: ", "", "custom,Tmux_Session_Names")
-  endwhile
-
-  let windows = split(s:TmuxWindows(), "\n")
-  if len(windows) == 1
-    let window = windows[0]
-  else
-    let window = input("window name: ", "", "custom,Tmux_Window_Names")
-    if window == ''
-      let window = windows[0]
-    endif
-  endif
-
-  let g:tslime['window'] =  substitute(window, ":.*$" , '', 'g')
-
   let panes = split(s:TmuxPanes(), "\n")
   if len(panes) == 1
     let g:tslime['pane'] = panes[0]
