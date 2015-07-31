@@ -11,7 +11,7 @@ let g:loaded_tslime = 1
 " Function to send keys to tmux
 " useful if you want to stop some command with <c-c> in tmux.
 function! Send_keys_to_Tmux(keys)
-  if !exists("g:tslime")
+  if !exists("g:tslime") || s:PaneExists(g:tslime['pane'])
     call <SID>Tmux_Vars()
   endif
 
@@ -21,7 +21,7 @@ endfunction
 " Main function.
 " Use it in your script if you want to send text to a tmux pane.
 function! Send_to_Tmux(text)
-  if !exists("g:tslime")
+  if !exists("g:tslime") || s:PaneExists(g:tslime['pane'])
     call <SID>Tmux_Vars()
   endif
 
@@ -46,6 +46,11 @@ endfunction
 function! s:CreateTmuxPane()
   call system("tmux splitw -h")
   return system("tmux list-panes | grep active | sed -e 's/:.*$//'")
+endfunction
+
+function! s:PaneExists(index)
+  let panes = system("tmux list-panes | sed -e 's/:.*$//' | grep " . a:index)
+  return (panes == (a:index . "\n")) == 0
 endfunction
 
 " set tslime.vim variables
