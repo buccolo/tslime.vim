@@ -43,27 +43,16 @@ function! SendToTmux(text)
   call Send_to_Tmux(a:text)
 endfunction
 
-" Pane completion
-function! Tmux_Pane_Numbers(A,L,P)
-  return <SID>TmuxPanes()
-endfunction
-
-function! s:TmuxPanes()
-  return system("tmux list-panes -t | sed -e 's/:.*$//'")
+function! s:CreateTmuxPane()
+  call system("tmux splitw -h")
+  return system("tmux list-panes | grep active | sed -e 's/:.*$//'")
 endfunction
 
 " set tslime.vim variables
 function! s:Tmux_Vars()
   let g:tslime = {}
-  let panes = split(s:TmuxPanes(), "\n")
-  if len(panes) == 1
-    let g:tslime['pane'] = panes[0]
-  else
-    let g:tslime['pane'] = input("pane number: ", "", "custom,Tmux_Pane_Numbers")
-    if g:tslime['pane'] == ''
-      let g:tslime['pane'] = panes[0]
-    endif
-  endif
+  let panes = split(s:CreateTmuxPane(), "\n")
+  let g:tslime['pane'] = panes[0]
 endfunction
 
 vmap <unique> <Plug>SendSelectionToTmux "ry :call Send_to_Tmux(@r)<CR>
